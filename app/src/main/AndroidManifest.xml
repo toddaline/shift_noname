@@ -18,6 +18,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".MainActivity" />
+        <activity android:name=".ContactsActivity" />
     </application>
-
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 </manifest>
