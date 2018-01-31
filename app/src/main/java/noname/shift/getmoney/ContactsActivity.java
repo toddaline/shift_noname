@@ -34,7 +34,7 @@ public class ContactsActivity extends AppCompatActivity {
 
     Button button;
     ArrayList<Contact> contacts = new ArrayList<>();
-    ArrayList<Contact> checkedContacts = new ArrayList<>();
+//    ArrayList<Contact> checkedContacts = new ArrayList<>();
     ListDbHelper dbHelper;
     RecyclerView rv;
     RVAdapter adapter;
@@ -47,7 +47,6 @@ public class ContactsActivity extends AppCompatActivity {
         button = findViewById(R.id.button_target);
 
         dbHelper = new ListDbHelper(this);
-        recreateTable(dbHelper);
         rv = findViewById(R.id.recycler_view_all_contacts);
         adapter = new RVAdapter(contacts);
         Log.i("size", ": " + contacts.size());
@@ -68,6 +67,7 @@ public class ContactsActivity extends AppCompatActivity {
                 countSum(adapter.getCheckCount());
                 Intent intent = new Intent(ContactsActivity.this, ListActivity.class);
                 startActivity(intent);
+            //    finish();
 
             } else {
                 Toast.makeText(ContactsActivity.this, "Выберите от 1 до 10 контактов из списка", Toast.LENGTH_SHORT).show();
@@ -76,6 +76,12 @@ public class ContactsActivity extends AppCompatActivity {
 
         MyAsyncTask task = new MyAsyncTask();
         task.execute();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        recreateTable(dbHelper);
     }
 
     public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ContactViewHolder> {
@@ -156,10 +162,10 @@ public class ContactsActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    private boolean checkSelectedContactsNumber() {
-
-        return checkedContacts.size() > 0 && checkedContacts.size() <= 10;
-    }
+//    private boolean checkSelectedContactsNumber() {
+//
+//        return checkedContacts.size() > 0 && checkedContacts.size() <= 10;
+//    }
 
     private void recreateTable(ListDbHelper dbHelper) {
         SQLiteDatabase sqLiteDatabase = dbHelper.getReadableDatabase();
@@ -253,7 +259,7 @@ public class ContactsActivity extends AppCompatActivity {
                     phones.put(contactName, curPhones);
                     contacts.add(new Contact(contactName, curPhones.get(0)));
                     //   if (count == 3) {
-                        checkedContacts.add(new Contact(contactName, curPhones.get(0)));
+                 //       checkedContacts.add(new Contact(contactName, curPhones.get(0)));
                 //    }
                     count++;
                 }

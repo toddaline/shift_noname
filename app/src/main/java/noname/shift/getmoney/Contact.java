@@ -27,6 +27,14 @@ public class Contact {
         isChecked = checked;
     }
 
+    public void setChecked(int checked) {
+        if (checked == 0) {
+            isChecked = false;
+        } else {
+            isChecked = true;
+        }
+    }
+
     /*        public void setMyId(int my_id) {
             _my_id = my_id;
         }*/

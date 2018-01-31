@@ -25,6 +25,7 @@
         android:ems="10"
         android:inputType="numberDecimal"
         android:maxLength="16"
+        android:text="1234567890123456"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editText3" />
 
@@ -34,6 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="44dp"
         android:layout_marginTop="8dp"
+        android:maxLength="9"
         android:ems="10"
         android:inputType="numberDecimal"
         app:layout_constraintStart_toStartOf="parent"
