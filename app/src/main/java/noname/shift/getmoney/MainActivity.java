@@ -38,19 +38,16 @@ public class MainActivity extends AppCompatActivity {
 
         settings = getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE);
 
-        getMoneyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        getMoneyButton.setOnClickListener(view -> {
 
-                // Запоминаем данные
-                SharedPreferences.Editor editor = settings.edit();
-                editor.putString(SharedPreferencesConstants.APP_PREFERENCES_CARD_NUMBER, cardNumberText.getText().toString());
-                editor.putInt(SharedPreferencesConstants.APP_PREFERENCES_SUM, Integer.parseInt(sumText.getText().toString()));
-                editor.apply();
+            // Запоминаем данные
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString(SharedPreferencesConstants.APP_PREFERENCES_CARD_NUMBER, cardNumberText.getText().toString());
+            editor.putInt(SharedPreferencesConstants.APP_PREFERENCES_SUM, Integer.parseInt(sumText.getText().toString()));
+            editor.apply();
 
-                Intent intent = new Intent(MainActivity.this, ContactsActivity.class);
-                startActivity(intent);
-            }
+            Intent intent = new Intent(MainActivity.this, ContactsActivity.class);
+            startActivity(intent);
         });
         checkPermissions();
         cardNumberText.addTextChangedListener(textWatcher);

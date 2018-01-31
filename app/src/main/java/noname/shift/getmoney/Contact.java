@@ -3,6 +3,7 @@ package noname.shift.getmoney;
 public class Contact {
         private String name = "";
         private String phone = "";
+        private boolean isChecked = false;
         private int id;
 
     Contact(String name, String phone) {
@@ -18,7 +19,15 @@ public class Contact {
         return phone;
     }
 
-/*        public void setMyId(int my_id) {
+    public boolean isChecked() {
+        return isChecked;
+    }
+
+    public void setChecked(boolean checked) {
+        isChecked = checked;
+    }
+
+    /*        public void setMyId(int my_id) {
             _my_id = my_id;
         }*/
 }

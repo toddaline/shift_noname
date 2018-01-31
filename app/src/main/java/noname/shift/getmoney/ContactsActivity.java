@@ -19,10 +19,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckedTextView;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,17 +46,6 @@ public class ContactsActivity extends AppCompatActivity {
 
         button = findViewById(R.id.button_target);
 
-//        ctvName.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                if (ctvName.isChecked())
-//                    ctvName.setChecked(false);
-//                else {
-//                    ctvName.setChecked(true);
-//                }
-//            }
-//        });
-
         dbHelper = new ListDbHelper(this);
         recreateTable(dbHelper);
         rv = findViewById(R.id.recycler_view_all_contacts);
@@ -70,22 +57,20 @@ public class ContactsActivity extends AppCompatActivity {
 
         Log.i("table", "smth happened");
 
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        button.setOnClickListener(view -> {
 
-                if (checkSelectedContactsNumber()) {
-                    for (Contact contact : checkedContacts) {
+            if (adapter.getCheckCount() > 0) {
+                for (Contact contact : contacts) {
+                    if (contact.isChecked()) {
                         insertContact(contact.getName(), contact.getPhone());
                     }
-
-                    countSum();
-                    Intent intent = new Intent(ContactsActivity.this, ListActivity.class);
-                    startActivity(intent);
-
-                } else {
-                    Toast.makeText(ContactsActivity.this, "Выберите от 1 до 10 контактов из списка", Toast.LENGTH_SHORT).show();
                 }
+                countSum(adapter.getCheckCount());
+                Intent intent = new Intent(ContactsActivity.this, ListActivity.class);
+                startActivity(intent);
+
+            } else {
+                Toast.makeText(ContactsActivity.this, "Выберите от 1 до 10 контактов из списка", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -96,6 +81,11 @@ public class ContactsActivity extends AppCompatActivity {
     public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ContactViewHolder> {
 
         ArrayList<Contact> contacts;
+        int checkCount = 0;
+
+        public int getCheckCount() {
+            return checkCount;
+        }
 
         RVAdapter(ArrayList<Contact> contacts) {
             this.contacts = contacts;
@@ -103,14 +93,21 @@ public class ContactsActivity extends AppCompatActivity {
 
         @Override
         public ContactViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item, parent, false);
-            return new ContactViewHolder(v);
+           View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item, parent, false);
+           return new ContactViewHolder(v);
         }
 
         @Override
         public void onBindViewHolder(ContactViewHolder holder, int position) {
             holder.name.setText(contacts.get(position).getName());
             holder.number.setText(contacts.get(position).getPhone());
+            Log.i("position", Integer.toString(position));
+            holder.position = position;
+            if (contacts.get(position).isChecked()) {
+                holder.name.setChecked(true);
+            } else {
+                holder.name.setChecked(false);
+            }
         }
 
         @Override
@@ -118,35 +115,41 @@ public class ContactsActivity extends AppCompatActivity {
             return contacts.size();
         }
 
-
         class ContactViewHolder extends RecyclerView.ViewHolder {
             CardView cv;
             CheckedTextView name;
             TextView number;
+            int position;
 
             ContactViewHolder(View itemView) {
                 super(itemView);
                 cv = itemView.findViewById(R.id.card);
                 name = itemView.findViewById(R.id.name);
                 number = itemView.findViewById(R.id.number);
-                name.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if (name.isChecked()) {
-                            name.setChecked(false);
-                        } else {
-                            name.setChecked(true);
+
+                name.setOnClickListener(view -> {
+                    if (name.isChecked()) {
+                        contacts.get(position).setChecked(false);
+                        name.setChecked(false);
+                        checkCount--;
+                    } else {
+                        if (checkCount == 10) {
+                            Toast.makeText(ContactsActivity.this, "Выберите не более 10 контактов из списка", Toast.LENGTH_SHORT).show();
+                            return;
                         }
+                        contacts.get(position).setChecked(true);
+                        name.setChecked(true);
+                        checkCount++;
                     }
                 });
             }
         }
     }
 
-    private void countSum() {
+    private void countSum(int contactsCount) {
         SharedPreferences settings = getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
-        double sum = (double) settings.getInt(SharedPreferencesConstants.APP_PREFERENCES_SUM, 0)/checkedContacts.size();
+        double sum = (double) settings.getInt(SharedPreferencesConstants.APP_PREFERENCES_SUM, 0)/contactsCount;
         Log.i("sum", Double.toString(sum));
         editor.putInt(SharedPreferencesConstants.APP_PREFERENCES_AVERAGE_SUM, (int) Math.ceil(sum));
         Log.i("finalSum", Integer.toString((int) Math.ceil(sum)));

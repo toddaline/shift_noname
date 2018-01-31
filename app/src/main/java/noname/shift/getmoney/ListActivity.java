@@ -33,16 +33,13 @@ public class ListActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_target_contacts);
-        button = findViewById(R.id.button);
+        button = findViewById(R.id.button_send);
         dbHelper = new ListDbHelper(this);
 
         settings = getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                initMessage();
-                sendMessage(view);
-            }
+        button.setOnClickListener(view -> {
+            initMessage();
+            sendMessage(view);
         });
     }
 
@@ -95,7 +92,7 @@ public class ListActivity extends AppCompatActivity {
                 String currentPhone = cursor.getString(phoneColumnIndex);
                 int currentStatus = cursor.getInt(paidColumnIndex);
                 if (currentStatus == ListEntry.FALSE) {
-                    numbers.append(", ").append(currentPhone);
+                    numbers.append("; ").append(currentPhone);
                 }
             }
         }
