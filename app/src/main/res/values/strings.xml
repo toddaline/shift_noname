@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">GetMoney</string>
+    <string name="card_number">Card number</string>
+    <string name="sum">sum</string>
+    <string name="target_group">target group</string>
+    <string name="create_message">create</string>
+    <string name="send_message">send</string>
 </resources>
