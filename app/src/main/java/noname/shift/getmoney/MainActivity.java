@@ -45,23 +45,24 @@ public class MainActivity extends AppCompatActivity {
             editor.putString(SharedPreferencesConstants.APP_PREFERENCES_CARD_NUMBER, cardNumberText.getText().toString());
             editor.putInt(SharedPreferencesConstants.APP_PREFERENCES_SUM, Integer.parseInt(sumText.getText().toString()));
             editor.apply();
-
-            Intent intent = new Intent(MainActivity.this, ContactsActivity.class);
-            startActivity(intent);
+//            if (checkPermissions()) {
+                Intent intent = new Intent(MainActivity.this, ContactsActivity.class);
+                startActivity(intent);
+//            }
         });
-        checkPermissions();
+     //   if (checkPermissions())
         cardNumberText.addTextChangedListener(textWatcher);
         sumText.addTextChangedListener(textWatcher);
     }
 
-    private void checkPermissions() {
+    private boolean checkPermissions() {
         int permissionStatus = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
-
         if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
-        //    readContacts();
+            return true;
         } else {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.READ_CONTACTS},
                     REQUEST_CODE_PERMISSION_READ_CONTACTS);
+            return false;
         }
     }
 

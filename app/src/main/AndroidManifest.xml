@@ -20,7 +20,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".MainActivity" />
-        <activity android:name=".ContactsActivity" />
+        <activity android:name=".ContactsActivity"
+            android:theme="@style/SearchTheme"/>
         <activity android:name=".ListActivity" />
     </application>
 </manifest>

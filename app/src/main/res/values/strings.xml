@@ -6,4 +6,5 @@
     <string name="create_message">create</string>
     <string name="send_message">send</string>
     <string name="button_new_list">New list</string>
+    <string name="action_search">Search</string>
 </resources>
