@@ -36,6 +36,7 @@ public class ListActivity extends AppCompatActivity {
     static String messageText;
     RecyclerView rv;
     RVAdapter adapter;
+    int checkCount = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -49,16 +50,47 @@ public class ListActivity extends AppCompatActivity {
 
         adapter = new RVAdapter(contacts);
         displayDatabaseInfo();
+        changeButton();
         Log.i("size", ": " + contacts.size());
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         rv.setLayoutManager(mLayoutManager);
         rv.setAdapter(adapter);
 
         settings = getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putBoolean(SharedPreferencesConstants.APP_PREFERENCES_HAS_TABLE, true);
+        editor.apply();
+
         button.setOnClickListener(view -> {
-            initMessage();
-            sendMessage(view);
+            if (button.getText().toString().equals(getResources().getString(R.string.send_message))) {
+                initMessage();
+                sendMessage(view);
+            } else {
+                deleteTable();
+                Intent intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
+                finish();   //not sure
+            }
         });
+    }
+
+    private void changeButton() {
+        if (checkCount == contacts.size()) {
+            button.setText(R.string.button_new_list);
+        } else {
+            button.setText(R.string.send_message);
+        }
+    }
+
+    private void deleteTable() {
+        SQLiteDatabase sqLiteDatabase = dbHelper.getReadableDatabase();
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ListEntry.TABLE_NAME);
+        sqLiteDatabase.close();
+        settings = getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putBoolean(SharedPreferencesConstants.APP_PREFERENCES_HAS_TABLE, false);
+        editor.apply();
+
     }
 
     private void initMessage() {
@@ -71,8 +103,6 @@ public class ListActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-    //    displayDatabaseInfo();
-    //    adapter.notifyDataSetChanged();
     }
 
     public void sendMessage(View v) {
@@ -151,6 +181,9 @@ public class ListActivity extends AppCompatActivity {
                 int currentStatus = cursor.getInt(paidColumnIndex);
                 Contact contact = new Contact(currentName, currentPhone);
                 contact.setChecked(currentStatus);
+                if (currentStatus == ListEntry.TRUE) {
+                    checkCount++;
+                }
                 contacts.add(contact);
 
                 Log.i("table", "id: " + currentID + " name: " + currentName + ", " + currentPhone + ", " + currentStatus);
@@ -162,7 +195,6 @@ public class ListActivity extends AppCompatActivity {
     public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ContactViewHolder> {
 
         ArrayList<Contact> contacts;
-        int checkCount = 0;
 
         public int getCheckCount() {
             return checkCount;
@@ -216,14 +248,16 @@ public class ListActivity extends AppCompatActivity {
                         updateDatabase(position + 1, false);
                         checkCount--;
                     } else {
-                        if (checkCount == contacts.size()) {
-                            Log.i("check", "change button");
-                        }
+ //                       if (checkCount == contacts.size()) {
+ //                           changeButton();
+ //                           Log.i("check", "change button");
+ //                       }
                         contacts.get(position).setChecked(true);
                         name.setChecked(true);
                         updateDatabase(position + 1, true);
                         checkCount++;
                     }
+                    changeButton();
                 });
             }
         }

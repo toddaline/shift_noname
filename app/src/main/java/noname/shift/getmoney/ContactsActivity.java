@@ -59,6 +59,7 @@ public class ContactsActivity extends AppCompatActivity {
         button.setOnClickListener(view -> {
 
             if (adapter.getCheckCount() > 0) {
+                recreateTable(dbHelper);
                 for (Contact contact : contacts) {
                     if (contact.isChecked()) {
                         insertContact(contact.getName(), contact.getPhone());
@@ -81,7 +82,7 @@ public class ContactsActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        recreateTable(dbHelper);
+//        recreateTable(dbHelper);
     }
 
     public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ContactViewHolder> {
