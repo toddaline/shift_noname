@@ -15,11 +15,8 @@ import noname.shift.getmoney.presenters.SharedPreferencesConstants;
 public class ListDbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "contacts.db";
-
-    /**
-     * Версия базы данных. При изменении схемы увеличить на единицу
-     */
     private static final int DATABASE_VERSION = 1;
+    private static final int errorInsertDb = -1;
 
     private Context context;
     public ListDbHelper(Context context) {
@@ -36,7 +33,6 @@ public class ListDbHelper extends SQLiteOpenHelper {
                 + ListContract.ListEntry.COLUMN_PHONE + " TEXT NOT NULL, "
                 + ListContract.ListEntry.COLUMN_PAID + " INTEGER NOT NULL DEFAULT 0);";
 
-        // Запускаем создание таблицы
         sqLiteDatabase.execSQL(SQL_CREATE_TABLE);
 
         Log.i("table", "table created");
@@ -59,16 +55,12 @@ public class ListDbHelper extends SQLiteOpenHelper {
                 + ListContract.ListEntry.COLUMN_PHONE + " TEXT NOT NULL, "
                 + ListContract.ListEntry.COLUMN_PAID + " INTEGER NOT NULL DEFAULT 0);";
 
-        // Запускаем создание таблицы
         sqLiteDatabase.execSQL(SQL_CREATE_TABLE);
         sqLiteDatabase.close();
     }
 
     public boolean insertContact(String name, String phoneNumber) {
-        // Gets the database in write mode
         SQLiteDatabase db = getWritableDatabase();
-        // Создаем объект ContentValues, где имена столбцов ключи,
-        // а информация о госте является значениями ключей
         ContentValues values = new ContentValues();
         values.put(ListContract.ListEntry.COLUMN_NAME, name);
         values.put(ListContract.ListEntry.COLUMN_PHONE, phoneNumber);
@@ -76,8 +68,7 @@ public class ListDbHelper extends SQLiteOpenHelper {
 
         long newRowId = db.insert(ListContract.ListEntry.TABLE_NAME, null, values);
 
-        // Выводим сообщение в успешном случае или при ошибке
-        if (newRowId == -1) {
+        if (newRowId == errorInsertDb) {
             // Если ID  -1, значит произошла ошибка
             return false;
         } else{

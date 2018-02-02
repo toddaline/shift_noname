@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
 
         getMoneyButton.setOnClickListener(view -> {
 
-            // Запоминаем данные
             SharedPreferences.Editor editor = settings.edit();
             editor.putString(SharedPreferencesConstants.APP_PREFERENCES_CARD_NUMBER, cardNumberText.getText().toString());
             editor.putInt(SharedPreferencesConstants.APP_PREFERENCES_SUM, Integer.parseInt(sumText.getText().toString()));
@@ -70,15 +69,7 @@ public class MainActivity extends AppCompatActivity {
         cardNumberText.addTextChangedListener(textWatcher);
         sumText.addTextChangedListener(textWatcher);
     }
-//    @Override
-//    public void onConfigurationChanged(Configuration newConfig) {
-//        super.onConfigurationChanged(newConfig);
-//        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-//            setContentView(R.layout.horisontal_activity_main);
-//        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-//            setContentView(R.layout.activity_main);
-//        }
-//    }
+
 
     boolean checkFields() {
         return cardNumberText.getText().length() == CARD_NUMBER_LENGTH

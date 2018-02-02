@@ -1,11 +1,7 @@
 package noname.shift.getmoney.views;
 
-/**
- * Created by denis on 02.02.2018.
- */
-
 public interface TargetContactsView {
-    public void goSendMessage(String number);
-    public void setButtonText(String text);
-    public void setButtonText(int idText);
+    void goSendMessage(String number);
+    void setButtonText(String text);
+    void setButtonText(int idText);
 }

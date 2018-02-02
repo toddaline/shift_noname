@@ -14,6 +14,7 @@ import noname.shift.getmoney.presenters.SharedPreferencesConstants;
 public class SplashActivity extends AppCompatActivity {
 
     private static final int DELAY = 2000;
+    private static final int idMessage = 0;
 
     @SuppressLint("HandlerLeak")
     private Handler handler = new Handler() {
@@ -39,13 +40,13 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        handler.sendEmptyMessageDelayed(0, DELAY);
+        handler.sendEmptyMessageDelayed(idMessage, DELAY);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        handler.removeMessages(0);
+        handler.removeMessages(idMessage);
     }
 
 
