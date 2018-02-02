@@ -12,10 +12,17 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import noname.shift.getmoney.presenters.SharedPreferencesConstants;
+import ru.tinkoff.decoro.Mask;
+import ru.tinkoff.decoro.MaskImpl;
+import ru.tinkoff.decoro.parser.UnderscoreDigitSlotsParser;
+import ru.tinkoff.decoro.slots.PredefinedSlots;
+import ru.tinkoff.decoro.slots.Slot;
+import ru.tinkoff.decoro.watchers.FormatWatcher;
+import ru.tinkoff.decoro.watchers.MaskFormatWatcher;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int CARD_NUMBER_LENGTH = 16;
+    private static final int CARD_NUMBER_LENGTH = 19;
 
     private Button getMoneyButton;
     private EditText cardNumberText;
@@ -31,6 +38,10 @@ public class MainActivity extends AppCompatActivity {
         cardNumberText = findViewById(R.id.cardNumber);
         sumText = findViewById(R.id.sumText);
         getMoneyButton.setEnabled(false);
+
+        MaskImpl mask = MaskImpl.createTerminated(PredefinedSlots.CARD_NUMBER_STANDART_MASKABLE);
+        FormatWatcher formatWatcher = new MaskFormatWatcher(mask);
+        formatWatcher.installOn(cardNumberText);
 
         settings = getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE);
 
@@ -72,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     boolean checkFields() {
-        return cardNumberText.getText().length() == CARD_NUMBER_LENGTH
+        return cardNumberText.getText().toString().length() == CARD_NUMBER_LENGTH
                 && sumText.getText().length() != 0;
     }
 }
