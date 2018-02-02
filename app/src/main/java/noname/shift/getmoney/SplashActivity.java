@@ -7,16 +7,17 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import noname.shift.getmoney.presenters.SharedPreferencesConstants;
+
 public class SplashActivity extends AppCompatActivity {
 
-    static final int DELAY = 2000;
-    SharedPreferences settings;
+    private static final int DELAY = 2000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        settings = getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences settings = getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE);
         boolean hasTable = settings.getBoolean(SharedPreferencesConstants.APP_PREFERENCES_HAS_TABLE, false);
 
         new Handler().postDelayed(() -> {

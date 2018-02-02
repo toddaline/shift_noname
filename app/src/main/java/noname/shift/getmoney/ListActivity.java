@@ -1,16 +1,12 @@
 package noname.shift.getmoney;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -23,35 +19,39 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import noname.shift.getmoney.data.ListDbHelper;
-import static noname.shift.getmoney.data.ListContract.ListEntry;
+import noname.shift.getmoney.models.Contact;
+import noname.shift.getmoney.models.ListDbHelper;
+import noname.shift.getmoney.presenters.ContactsAdapter;
+import noname.shift.getmoney.presenters.ContactsHolder;
+import noname.shift.getmoney.presenters.SharedPreferencesConstants;
+import noname.shift.getmoney.presenters.TargetContactsPresenters;
+import noname.shift.getmoney.views.TargetContactsView;
 
-public class ListActivity extends AppCompatActivity {
+public class ListActivity extends AppCompatActivity implements TargetContactsView{
+    private static String messageText;
 
-    private ListDbHelper dbHelper;
-    Button button;
-    ArrayList<Contact> contacts;
+    private Button button;
 
-    SharedPreferences settings;
-    static String messageText;
-    RecyclerView rv;
-    RVAdapter adapter;
-    int checkCount = 0;
+    private SharedPreferences settings;
+
+    private RecyclerView rv;
+    private RVAdapter adapter;
+    private TargetContactsPresenters presenters;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_target_contacts);
         button = findViewById(R.id.button_send);
-        contacts = new ArrayList<>();
-        dbHelper = new ListDbHelper(this);
 
         rv = findViewById(R.id.recycler_view__target_contacts);
 
-        adapter = new RVAdapter(contacts);
-        displayDatabaseInfo();
-        changeButton();
-        Log.i("size", ": " + contacts.size());
+        adapter = new RVAdapter();
+        presenters = new TargetContactsPresenters(this, new ListDbHelper(this));
+        presenters.loadContacts();
+        button.setText(R.string.send_message);
+
+
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         rv.setLayoutManager(mLayoutManager);
         rv.setAdapter(adapter);
@@ -64,33 +64,18 @@ public class ListActivity extends AppCompatActivity {
         button.setOnClickListener(view -> {
             if (button.getText().toString().equals(getResources().getString(R.string.send_message))) {
                 initMessage();
-                sendMessage(view);
+                presenters.sendMessage();
             } else {
-                deleteTable();
+                presenters.deleteData();
+                settings = getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE);
+                SharedPreferences.Editor newEditor = settings.edit();
+                newEditor.putBoolean(SharedPreferencesConstants.APP_PREFERENCES_HAS_TABLE, false);
+                newEditor.apply();
                 Intent intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
                 finish();   //not sure
             }
         });
-    }
-
-    private void changeButton() {
-        if (checkCount == contacts.size()) {
-            button.setText(R.string.button_new_list);
-        } else {
-            button.setText(R.string.send_message);
-        }
-    }
-
-    private void deleteTable() {
-        SQLiteDatabase sqLiteDatabase = dbHelper.getReadableDatabase();
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ListEntry.TABLE_NAME);
-        sqLiteDatabase.close();
-        settings = getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(SharedPreferencesConstants.APP_PREFERENCES_HAS_TABLE, false);
-        editor.apply();
-
     }
 
     private void initMessage() {
@@ -101,107 +86,31 @@ public class ListActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    public void sendMessage(View v) {
-        String number = "smsto:" + selectNumbers();
-    //    number = "smsto:" + "89513772523";
-        Log.i("numbers", number);
-    //    String messageText = "hello";
+    public void goSendMessage(String number) {
         Intent sms = new Intent(Intent.ACTION_SENDTO, Uri.parse(number));
 
         sms.putExtra("sms_body", messageText);
         startActivity(sms);
     }
 
-    private String selectNumbers() {
-
-        StringBuilder numbers = new StringBuilder();
-
-        for (Contact contact : contacts) {
-            if (!contact.isChecked()) {
-                numbers.append("; ").append(contact.getPhone());
-            }
-        }
-        return numbers.substring(2);
+    @Override
+    public void setButtonText(String text) {
+        button.setText(text);
     }
 
-    private void updateDatabase(int id, boolean status) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
-        ContentValues cv = new ContentValues();
-        if (status) {
-            cv.put(ListEntry.COLUMN_PAID, ListEntry.TRUE);
-        } else {
-            cv.put(ListEntry.COLUMN_PAID, ListEntry.FALSE);
-        }
-
-        Log.i("id to update", Integer.toString(id));
-        db.update(ListEntry.TABLE_NAME, cv, ListEntry._ID + " = ?", new String[] { Integer.toString(id) });
-        db.close();
+    @Override
+    public void setButtonText(int idText) {
+        button.setText(idText);
     }
 
-    private void displayDatabaseInfo() {
-        // Создадим и откроем для чтения базу данных
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+    private class RVAdapter extends RecyclerView.Adapter<RVAdapter.ContactViewHolder> implements ContactsAdapter {
 
-        // Зададим условие для выборки - список столбцов
-        String[] projection = {
-                ListEntry._ID,
-                ListEntry.COLUMN_NAME,
-                ListEntry.COLUMN_PHONE,
-                ListEntry.COLUMN_PAID };
+        //private ArrayList<Contact> contacts;
 
-        // Делаем запрос
-        try (Cursor cursor = db.query(
-                ListEntry.TABLE_NAME,           // таблица
-                projection,                     // столбцы
-                null,                  // столбцы для условия WHERE
-                null,               // значения для условия WHERE
-                null,                  // Don't group the rows
-                null,                   // Don't filter by row groups
-                null)) {
 
-            // Узнаем индекс каждого столбца
-            int idColumnIndex = cursor.getColumnIndex(ListEntry._ID);
-            int nameColumnIndex = cursor.getColumnIndex(ListEntry.COLUMN_NAME);
-            int phoneColumnIndex = cursor.getColumnIndex(ListEntry.COLUMN_PHONE);
-            int paidColumnIndex = cursor.getColumnIndex(ListEntry.COLUMN_PAID);
+        @Override
+        public void update(ArrayList<Contact> contacts) {
 
-            Log.i("rows", "id: " + idColumnIndex + " name: " + nameColumnIndex + " phone: " + phoneColumnIndex + " paid: " + paidColumnIndex);
-
-            // Проходим через все ряды
-            while (cursor.moveToNext()) {
-                // Используем индекс для получения строки или числа
-                int currentID = cursor.getInt(idColumnIndex);
-                String currentName = cursor.getString(nameColumnIndex);
-                String currentPhone = cursor.getString(phoneColumnIndex);
-                int currentStatus = cursor.getInt(paidColumnIndex);
-                Contact contact = new Contact(currentName, currentPhone);
-                contact.setChecked(currentStatus);
-                if (currentStatus == ListEntry.TRUE) {
-                    checkCount++;
-                }
-                contacts.add(contact);
-
-                Log.i("table", "id: " + currentID + " name: " + currentName + ", " + currentPhone + ", " + currentStatus);
-            }
-        }
-        db.close();
-    }
-
-    public class RVAdapter extends RecyclerView.Adapter<RVAdapter.ContactViewHolder> {
-
-        ArrayList<Contact> contacts;
-
-        public int getCheckCount() {
-            return checkCount;
-        }
-
-        RVAdapter(ArrayList<Contact> contacts) {
-            this.contacts = contacts;
         }
 
         @Override
@@ -212,54 +121,52 @@ public class ListActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(RVAdapter.ContactViewHolder holder, int position) {
-            holder.name.setText(contacts.get(position).getName());
-            holder.number.setText(contacts.get(position).getPhone());
             Log.i("position", Integer.toString(position));
-            Log.i("arraySize", Integer.toString(contacts.size()));
-            holder.position = position;
-            if (contacts.get(position).isChecked()) {
-                holder.name.setChecked(true);
-            } else {
-                holder.name.setChecked(false);
-            }
+            holder.setPozition(position);
+            presenters.bindViewHolder(holder, position);
+
+
         }
 
         @Override
         public int getItemCount() {
-            return contacts.size();
+            return presenters.getItemCount();
         }
 
-        class ContactViewHolder extends RecyclerView.ViewHolder {
-            CardView cv;
-            CheckedTextView name;
-            TextView number;
-            int position;
+        protected class ContactViewHolder extends RecyclerView.ViewHolder implements ContactsHolder{
+            private CheckedTextView name;
+            private TextView number;
+            private int pozition;
 
             ContactViewHolder(View itemView) {
                 super(itemView);
-                cv = itemView.findViewById(R.id.card);
                 name = itemView.findViewById(R.id.name);
                 number = itemView.findViewById(R.id.number);
 
                 name.setOnClickListener(view -> {
-                    if (name.isChecked()) {
-                        contacts.get(position).setChecked(false);
-                        name.setChecked(false);
-                        updateDatabase(position + 1, false);
-                        checkCount--;
-                    } else {
- //                       if (checkCount == contacts.size()) {
- //                           changeButton();
- //                           Log.i("check", "change button");
- //                       }
-                        contacts.get(position).setChecked(true);
-                        name.setChecked(true);
-                        updateDatabase(position + 1, true);
-                        checkCount++;
-                    }
-                    changeButton();
+                    presenters.pressButton(this, name.isChecked(), pozition);
                 });
             }
+
+            public void setPozition(int pozition){
+                this.pozition = pozition;
+            }
+
+            @Override
+            public void setLabel(boolean check) {
+                name.setChecked(check);
+            }
+
+            @Override
+            public void setNumber(String numbers) {
+                number.setText(numbers);
+            }
+
+            @Override
+            public void setName(String text) {
+                name.setText(text);
+            }
+
         }
     }
 }

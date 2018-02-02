@@ -1,5 +1,7 @@
 package noname.shift.getmoney;
 
+import android.content.SharedPreferences;
+
 public class SharedPreferencesConstants {
 
     public static final String APP_PREFERENCES = "mysettings";

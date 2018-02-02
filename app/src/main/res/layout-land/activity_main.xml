@@ -10,8 +10,8 @@
         android:id="@+id/getMoneyButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="140dp"
-        android:layout_marginStart="44dp"
+        android:layout_marginBottom="44dp"
+        android:layout_marginStart="344dp"
         android:text="Собрать деньги"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
