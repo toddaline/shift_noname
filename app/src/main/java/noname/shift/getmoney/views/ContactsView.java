@@ -6,8 +6,8 @@ import noname.shift.getmoney.models.Contact;
 
 
 public interface ContactsView {
-    public void goTargetContact();
-    public void setVisibility();
-    public void showMessage(String message);
-    public void resetAdapter(ArrayList<Contact> items);
+    void goTargetContact();
+    void setVisibility();
+    void showMessage(String message);
+    void resetAdapter(ArrayList<Contact> items);
 }

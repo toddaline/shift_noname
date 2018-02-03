@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -18,6 +19,7 @@ import android.widget.CheckedTextView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import noname.shift.getmoney.models.Contact;
 import noname.shift.getmoney.models.ListDbHelper;
@@ -29,13 +31,10 @@ import noname.shift.getmoney.views.TargetContactsView;
 
 public class ListActivity extends AppCompatActivity implements TargetContactsView{
     private static String messageText;
+    private static String smsBody = "sms_body";
 
     private Button button;
-
     private SharedPreferences settings;
-
-    private RecyclerView rv;
-    private RVAdapter adapter;
     private TargetContactsPresenters presenters;
 
     @Override
@@ -44,17 +43,17 @@ public class ListActivity extends AppCompatActivity implements TargetContactsVie
         setContentView(R.layout.activity_target_contacts);
         button = findViewById(R.id.button_send);
 
-        rv = findViewById(R.id.recycler_view__target_contacts);
+        RecyclerView recyclerView = findViewById(R.id.recycler_view__target_contacts);
 
-        adapter = new RVAdapter();
+        RVAdapter adapter = new RVAdapter();
         presenters = new TargetContactsPresenters(this, new ListDbHelper(this));
-        presenters.loadContacts();
+        presenters.loadContacts(adapter);
         button.setText(R.string.send_message);
 
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
-        rv.setLayoutManager(mLayoutManager);
-        rv.setAdapter(adapter);
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setAdapter(adapter);
 
         settings = getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
@@ -73,7 +72,7 @@ public class ListActivity extends AppCompatActivity implements TargetContactsVie
                 newEditor.apply();
                 Intent intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
-                finish();   //not sure
+                finish();
             }
         });
     }
@@ -89,8 +88,9 @@ public class ListActivity extends AppCompatActivity implements TargetContactsVie
     public void goSendMessage(String number) {
         Intent sms = new Intent(Intent.ACTION_SENDTO, Uri.parse(number));
 
-        sms.putExtra("sms_body", messageText);
-        startActivity(sms);
+        sms.putExtra(smsBody, messageText);
+        String chooser_message = "Choose application to send message";
+        startActivity(Intent.createChooser(sms, chooser_message));
     }
 
     @Override
@@ -104,9 +104,6 @@ public class ListActivity extends AppCompatActivity implements TargetContactsVie
     }
 
     private class RVAdapter extends RecyclerView.Adapter<RVAdapter.ContactViewHolder> implements ContactsAdapter {
-
-        //private ArrayList<Contact> contacts;
-
 
         @Override
         public void update(ArrayList<Contact> contacts) {
@@ -124,8 +121,6 @@ public class ListActivity extends AppCompatActivity implements TargetContactsVie
             Log.i("position", Integer.toString(position));
             holder.setPozition(position);
             presenters.bindViewHolder(holder, position);
-
-
         }
 
         @Override
@@ -133,28 +128,31 @@ public class ListActivity extends AppCompatActivity implements TargetContactsVie
             return presenters.getItemCount();
         }
 
-        protected class ContactViewHolder extends RecyclerView.ViewHolder implements ContactsHolder{
+        protected class ContactViewHolder extends RecyclerView.ViewHolder implements ContactsHolder {
+            private CardView cardView;
             private CheckedTextView name;
             private TextView number;
             private int pozition;
 
             ContactViewHolder(View itemView) {
                 super(itemView);
+                cardView = itemView.findViewById(R.id.card);
                 name = itemView.findViewById(R.id.name);
                 number = itemView.findViewById(R.id.number);
 
-                name.setOnClickListener(view -> {
+                cardView.setOnClickListener(view -> {
                     presenters.pressButton(this, name.isChecked(), pozition);
                 });
             }
 
-            public void setPozition(int pozition){
+            void setPozition(int pozition){
                 this.pozition = pozition;
             }
 
             @Override
             public void setLabel(boolean check) {
                 name.setChecked(check);
+                cardView.setSelected(check);
             }
 
             @Override

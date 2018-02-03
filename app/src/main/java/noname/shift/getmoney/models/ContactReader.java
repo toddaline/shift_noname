@@ -21,10 +21,9 @@ public class ContactReader {
     private static final String PHONE_NUMBER = ContactsContract.CommonDataKinds.Phone.NUMBER;
     private static final String PHONE_CONTACT_ID = ContactsContract.CommonDataKinds.Phone.CONTACT_ID;
 
-    public ArrayList<Contact> readAll(Context context) {
-        ContentResolver cr = context.getContentResolver();
+    public ArrayList<Contact> readAll(ContentResolver contentResolver) {
         ArrayList<Contact> contacts = new ArrayList<>();
-        Cursor pCur = cr.query(
+        Cursor pCur = contentResolver.query(
                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                 new String[]{PHONE_NUMBER, PHONE_CONTACT_ID, DISPLAY_NAME, HAS_PHONE_NUMBER},
                 null,
@@ -37,8 +36,6 @@ public class ContactReader {
                 HashMap<String, ArrayList<String>> phones = new HashMap<>();
                 while (pCur.moveToNext()) {
                     String contactName = pCur.getString(pCur.getColumnIndex(DISPLAY_NAME));
-
-                    /*для нескольких телефонов - оставить один?*/
                     ArrayList<String> curPhones = new ArrayList<>();
 
                     if (phones.containsKey(contactName)) {

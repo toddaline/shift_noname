@@ -1,11 +1,14 @@
 package noname.shift.getmoney.presenters;
 
+import android.content.ContentResolver;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import java.util.ArrayList;
 
 import noname.shift.getmoney.R;
 import noname.shift.getmoney.models.Contact;
+import noname.shift.getmoney.models.ContactReader;
 import noname.shift.getmoney.models.ListDbHelper;
 import noname.shift.getmoney.views.TargetContactsView;
 
@@ -20,14 +23,9 @@ public class TargetContactsPresenters {
         this.listDbHelper = listDbHelper;
     }
 
-    public void loadContacts(){
-        contacts = listDbHelper.displayDatabaseInfo();
-        for(Contact contact: contacts){
-            if(contact.isChecked()){
-                ++checkCount;
-            }
-        }
-        Log.i("size", ": " + contacts.size());
+    public void loadContacts(ContactsAdapter adapter){
+        LoadAsyncTask task = new LoadAsyncTask(adapter);
+        task.execute();
     }
 
     public void deleteData(){
@@ -51,15 +49,18 @@ public class TargetContactsPresenters {
     }
 
     public void pressButton(ContactsHolder holder, boolean status, int position) {
+        UpdateAsyncTask asyncTask;
         if (status) {
             contacts.get(position).setChecked(false);
             holder.setLabel(false);
-            listDbHelper.updateDatabase(position + 1, false);
+            asyncTask = new UpdateAsyncTask(position +1 ,false);
+            asyncTask.execute();
             --checkCount;
         } else {
             contacts.get(position).setChecked(true);
             holder.setLabel(true);
-            listDbHelper.updateDatabase(position + 1, true);
+            asyncTask = new UpdateAsyncTask(position +1 ,true);
+            asyncTask.execute();
             ++checkCount;
         }
         if (checkCount == contacts.size()) {
@@ -86,6 +87,49 @@ public class TargetContactsPresenters {
             }
         }
         return numbers.substring(2);
+    }
+
+    private class LoadAsyncTask extends AsyncTask<Void, Void, Void> {
+
+        private ContactsAdapter adapter;
+
+        public LoadAsyncTask(ContactsAdapter adapter) {
+            this.adapter = adapter;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            contacts = listDbHelper.displayDatabaseInfo();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            for(Contact contact: contacts){
+                if(contact.isChecked()){
+                    ++checkCount;
+                }
+            }
+            adapter.update(contacts);
+            Log.i("size", ": " + contacts.size());
+        }
+    }
+
+    private class UpdateAsyncTask extends AsyncTask<Void, Void, Void> {
+
+        private int position;
+        private boolean checked;
+        public UpdateAsyncTask(int position, boolean checked) {
+            this.position = position;
+            this.checked = checked;
+
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            listDbHelper.updateDatabase(position, checked);
+            return null;
+        }
     }
 
 }

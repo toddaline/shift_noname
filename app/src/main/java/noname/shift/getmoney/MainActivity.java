@@ -12,10 +12,17 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import noname.shift.getmoney.presenters.SharedPreferencesConstants;
+import ru.tinkoff.decoro.Mask;
+import ru.tinkoff.decoro.MaskImpl;
+import ru.tinkoff.decoro.parser.UnderscoreDigitSlotsParser;
+import ru.tinkoff.decoro.slots.PredefinedSlots;
+import ru.tinkoff.decoro.slots.Slot;
+import ru.tinkoff.decoro.watchers.FormatWatcher;
+import ru.tinkoff.decoro.watchers.MaskFormatWatcher;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int CARD_NUMBER_LENGTH = 16;
+    private static final int CARD_NUMBER_LENGTH = 19;
 
     private Button getMoneyButton;
     private EditText cardNumberText;
@@ -32,11 +39,14 @@ public class MainActivity extends AppCompatActivity {
         sumText = findViewById(R.id.sumText);
         getMoneyButton.setEnabled(false);
 
+        MaskImpl mask = MaskImpl.createTerminated(PredefinedSlots.CARD_NUMBER_STANDART_MASKABLE);
+        FormatWatcher formatWatcher = new MaskFormatWatcher(mask);
+        formatWatcher.installOn(cardNumberText);
+
         settings = getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE);
 
         getMoneyButton.setOnClickListener(view -> {
 
-            // Запоминаем данные
             SharedPreferences.Editor editor = settings.edit();
             editor.putString(SharedPreferencesConstants.APP_PREFERENCES_CARD_NUMBER, cardNumberText.getText().toString());
             editor.putInt(SharedPreferencesConstants.APP_PREFERENCES_SUM, Integer.parseInt(sumText.getText().toString()));
@@ -70,18 +80,10 @@ public class MainActivity extends AppCompatActivity {
         cardNumberText.addTextChangedListener(textWatcher);
         sumText.addTextChangedListener(textWatcher);
     }
-//    @Override
-//    public void onConfigurationChanged(Configuration newConfig) {
-//        super.onConfigurationChanged(newConfig);
-//        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-//            setContentView(R.layout.horisontal_activity_main);
-//        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-//            setContentView(R.layout.activity_main);
-//        }
-//    }
+
 
     boolean checkFields() {
-        return cardNumberText.getText().length() == CARD_NUMBER_LENGTH
+        return cardNumberText.getText().toString().length() == CARD_NUMBER_LENGTH
                 && sumText.getText().length() != 0;
     }
 }

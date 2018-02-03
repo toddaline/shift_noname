@@ -5,12 +5,13 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -38,41 +39,50 @@ import noname.shift.getmoney.views.ContactsView;
 
 public class ContactsActivity extends AppCompatActivity implements ContactsView {
     private static final int REQUEST_CODE_PERMISSION_READ_CONTACTS = 0;
-    private Button button;
-    private RecyclerView rv;
+    private FloatingActionButton button;
+    private RecyclerView recyclerView;
     private RVAdapter adapter;
     private ContactsPresenter contactsPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (savedInstanceState == null) {
-            setContentView(R.layout.activity_all_contacts);
-        }
+        setContentView(R.layout.activity_all_contacts);
 
 
         Toolbar toolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
 
-        button = findViewById(R.id.button_target);
+        button = findViewById(R.id.fab);
 
         contactsPresenter = new ContactsPresenter(this, new ListDbHelper(this));
-        rv = findViewById(R.id.recycler_view_all_contacts);
+        recyclerView = findViewById(R.id.recycler_view_all_contacts);
         adapter = new RVAdapter();
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
-        rv.setLayoutManager(mLayoutManager);
-        rv.setAdapter(adapter);
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setAdapter(adapter);
         button.setVisibility(View.INVISIBLE);
 
         if (checkPermissions()) {
             Log.i("table", "smth happened");
-            contactsPresenter.loadContacts(adapter, this);
+            if(savedInstanceState != null) {
+                contactsPresenter.loadStateBoundle(savedInstanceState);
+            }
+            contactsPresenter.loadContacts(adapter, this.getContentResolver());
         }
 
         button.setOnClickListener(view -> {
             contactsPresenter.choiseContact(
                     getSharedPreferences(SharedPreferencesConstants.APP_PREFERENCES, Context.MODE_PRIVATE));
         });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (outState != null) {
+            contactsPresenter.saveStateBoundle(outState);
+        }
     }
 
 
@@ -93,11 +103,9 @@ public class ContactsActivity extends AppCompatActivity implements ContactsView 
             case REQUEST_CODE_PERMISSION_READ_CONTACTS:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    contactsPresenter.loadContacts(adapter, this);
-                    // permission granted
+                    contactsPresenter.loadContacts(adapter, this.getContentResolver());
                 } else {
                     finish();
-                    // permission denied
                 }
         }
     }
@@ -148,10 +156,10 @@ public class ContactsActivity extends AppCompatActivity implements ContactsView 
     public void resetAdapter(ArrayList<Contact> items) {
         LinearLayoutManager verticalLinearLayoutManager;
         verticalLinearLayoutManager = new LinearLayoutManager(this);
-        rv.setLayoutManager(verticalLinearLayoutManager);
+        recyclerView.setLayoutManager(verticalLinearLayoutManager);
 
         RVAdapter adapter = new RVAdapter();
-        rv.setAdapter(adapter);
+        recyclerView.setAdapter(adapter);
         adapter.update(items);
     }
 
@@ -180,33 +188,35 @@ public class ContactsActivity extends AppCompatActivity implements ContactsView 
         }
 
 
-
         @Override
         public int getItemCount() {
-            if(adapterContacts == null){
+            if (adapterContacts == null) {
                 return 0;
             } else {
                 return adapterContacts.size();
             }
         }
 
-        protected class ContactViewHolder extends RecyclerView.ViewHolder implements ContactsHolder{
+        protected class ContactViewHolder extends RecyclerView.ViewHolder implements ContactsHolder {
+            private CardView cardView;
             private CheckedTextView name;
             private TextView number;
 
             ContactViewHolder(View itemView) {
                 super(itemView);
+                cardView = itemView.findViewById(R.id.card);
                 name = itemView.findViewById(R.id.name);
                 number = itemView.findViewById(R.id.number);
 
-                name.setOnClickListener(view -> {
-                    contactsPresenter.changeContactState(this,name.getText().toString(), name.isChecked());
+                cardView.setOnClickListener(view -> {
+                    contactsPresenter.changeContactState(this, name.getText().toString(), name.isChecked(), cardView);
                 });
             }
 
             @Override
             public void setLabel(boolean check) {
                 name.setChecked(check);
+                cardView.setSelected(check);
             }
 
             @Override
