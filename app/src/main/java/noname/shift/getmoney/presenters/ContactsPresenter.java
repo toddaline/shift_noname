@@ -143,7 +143,7 @@ public class ContactsPresenter {
         BigDecimal allSum = new BigDecimal(settings.getInt(SharedPreferencesConstants.APP_PREFERENCES_SUM, 0));
         BigDecimal allContacts = new BigDecimal(contactsCount);
         Log.i("divide", "contacts: " + allContacts.intValue() + "allSum: " + allContacts.intValue() );
-        BigDecimal result = allSum.divide(allContacts);
+        BigDecimal result = allSum.divide(allContacts, BigDecimal.ROUND_HALF_UP);
         result = result.setScale(0, BigDecimal.ROUND_CEILING);
         editor.putInt(SharedPreferencesConstants.APP_PREFERENCES_AVERAGE_SUM, result.intValue());
         Log.i("finalSum", Integer.toString(result.intValue()));
